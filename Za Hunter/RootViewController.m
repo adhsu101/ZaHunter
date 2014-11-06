@@ -13,12 +13,15 @@
 
 #define kRadiusInKM 10.0
 #define kDegreeToKmConversionDivisor 111.0
+#define kMeterToMileDivisor 1609.34
+#define kNumberOfPlaces 8
 
 @interface RootViewController () <CLLocationManagerDelegate, UITableViewDelegate, UITableViewDataSource>
 
 @property CLLocationManager *manager;
 @property (strong, nonatomic) IBOutlet UITableView *tableView;
 @property NSMutableArray *pizzaPlaces;
+@property NSMutableArray *nearbyPizzaPlaces;
 @property CLLocation *location;
 
 @end
@@ -35,7 +38,8 @@
     self.manager.delegate = self;
     self.tableView.delegate = self;
     self.pizzaPlaces = [NSMutableArray array];
-
+    self.nearbyPizzaPlaces = [NSMutableArray array];
+    
 }
 
 #pragma mark - Location Manager delegates
@@ -75,38 +79,93 @@
         {
             PizzaPlace *pizzaPlace = [[PizzaPlace alloc] initWithMapItem:mapItem];
             NSLog(@"%@",pizzaPlace.name);
+            NSLog(@"%@",pizzaPlace.placemark.locality);
+            CLLocationDistance distance = [pizzaPlace.placemark.location distanceFromLocation:location];
+            pizzaPlace.distanceInMiles = distance/kMeterToMileDivisor; //TODO: trouble shoot
+//            [self getDirectionsTo:mapItem];
             [self.pizzaPlaces addObject:pizzaPlace];
         }
-//        [self getDirectionsTo:mapItem];
+        [self sortByNearest:kNumberOfPlaces];
+        [self.tableView reloadData];
     }];
 }
+
+//- (void)getDirectionsTo:(MKMapItem *)destinationMapItem
+//{
+//    MKDirectionsRequest *request = [MKDirectionsRequest new];
+//    request.source = [MKMapItem mapItemForCurrentLocation];
+//    request.destination = destinationMapItem;
+//    
+//    MKDirections *directions = [[MKDirections alloc] initWithRequest:request];
+//    [directions calculateDirectionsWithCompletionHandler:^(MKDirectionsResponse *response, NSError *error) {
+//        NSArray *routes = response.routes;
+//        MKRoute *route = routes.firstObject;
+//        
+//        int x = 1;
+//        NSMutableString *directionsString = [NSMutableString string];
+//        
+//        for (MKRouteStep *step in route.steps)
+//        {
+//            [directionsString appendFormat:@"%d: %@\n", x, step.instructions];
+//            x++;
+//        }
+//        
+//        self.directions = directionsString;
+//        
+//    }];
+//}
 
 
 #pragma mark - Table View delegates
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
 {
-    return self.pizzaPlaces.count;
+    return self.nearbyPizzaPlaces.count;
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    return nil;
+    UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"cell" forIndexPath:indexPath];
+    PizzaPlace *pizzaPlace = self.nearbyPizzaPlaces[indexPath.row];
+    cell.textLabel.text = pizzaPlace.name;
+    cell.detailTextLabel.text = [NSString stringWithFormat:@"%.02f mi", pizzaPlace.distanceInMiles];
+    return cell;
 }
 
 #pragma mark - IBActions
 
 - (IBAction)onSearchButtonTapped:(UIBarButtonItem *)sender
 {
+    [self.pizzaPlaces removeAllObjects];
     [self.manager startUpdatingLocation];
 }
 
 #pragma mark - helper methods
 
--(double)convertToDegrees:(double)km
+- (double)convertToDegrees:(double)km
 {
     float degrees = km/kDegreeToKmConversionDivisor;
     return degrees;
+}
+
+- (void)sortByNearest:(NSInteger)numOfPlaces
+{
+    for (int x = 0; x < numOfPlaces; x++)
+    {
+        PizzaPlace *nearbyPizzaPlace = [[PizzaPlace alloc] init];
+        nearbyPizzaPlace = self.pizzaPlaces[0];
+        PizzaPlace *comparePlace = self.pizzaPlaces[0];
+        for (int y = 0; y < self.pizzaPlaces.count; y++)
+        {
+            comparePlace = self.pizzaPlaces[y];
+            if (nearbyPizzaPlace.distanceInMiles > comparePlace.distanceInMiles)
+            {
+                nearbyPizzaPlace = comparePlace;
+            }
+        }
+        [self.nearbyPizzaPlaces addObject:nearbyPizzaPlace];
+        [self.pizzaPlaces removeObject:nearbyPizzaPlace];
+    }
 }
 
 @end

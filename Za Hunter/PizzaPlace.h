@@ -13,7 +13,8 @@
 
 @property NSString *name;
 @property MKPlacemark *placemark;
-@property MKDirections *directions;
+@property NSMutableString *directions;
+@property double distanceInMiles;
 
 - (instancetype)initWithMapItem:(MKMapItem *)mapItem;
 
