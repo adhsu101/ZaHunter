@@ -101,13 +101,15 @@
 
 - (void)getTimes
 {
-    MKMapItem *sourceMapItem = [MKMapItem mapItemForCurrentLocation];
+    MKPlacemark *sourcePlacemark = [[MKPlacemark alloc] initWithCoordinate:self.myLocation.coordinate addressDictionary:nil];
+    MKMapItem *sourceMapItem = [[MKMapItem alloc] initWithPlacemark:sourcePlacemark];
     NSMutableString *timeString = [NSMutableString string];
-    
-//    self.totalTime = 
+
+    self.totalTime = kEatingTime * kSecondsToMinutes * self.nearbyPizzaPlaces.count;
     
     //TODO: print out times in order
     PizzaPlace *currentLocation = [[PizzaPlace alloc] initWithMapItem:sourceMapItem];
+    currentLocation.name = @"Original Location";
     [self.nearbyPizzaPlaces addObject:currentLocation];
     
     for (PizzaPlace *pizzaPlace in self.nearbyPizzaPlaces)
@@ -122,12 +124,14 @@
             self.totalTime = self.totalTime + time;
             [timeString appendFormat:@"%d min to %@\n", (int)time/kSecondsToMinutes, pizzaPlace.name];
             self.textView.text = timeString;
-            self.totalTimeString = [NSString stringWithFormat:@"Total crawl time %d min including%d at each place", (int)self.totalTime/kSecondsToMinutes, kEatingTime];
+            self.totalTimeString = [NSString stringWithFormat:@"%d min including %d min at each place", (int)self.totalTime/kSecondsToMinutes, kEatingTime];
             [self.tableView reloadData];
         }];
         
         sourceMapItem = request.destination;
     }
+    
+    [self.nearbyPizzaPlaces removeObject:currentLocation];
     
 }
 
@@ -183,6 +187,22 @@
     cell.textLabel.text = pizzaPlace.name;
     cell.detailTextLabel.text = [NSString stringWithFormat:@"%.02f mi", pizzaPlace.distanceInMiles];
     return cell;
+}
+
+- (UIView *)tableView:(UITableView *)tableView viewForFooterInSection:(NSInteger)section
+{
+    UILabel *myLabel = [[UILabel alloc] init];
+    myLabel.frame = CGRectMake(0, 20, 320, 50);
+    myLabel.backgroundColor = [UIColor lightGrayColor];
+    myLabel.font = [UIFont boldSystemFontOfSize:14];
+    myLabel.text = [self tableView:tableView titleForFooterInSection:section];
+    myLabel.textAlignment = NSTextAlignmentCenter;
+    
+    UIView *footerView = [[UIView alloc] init];
+    [footerView addSubview:myLabel];
+    
+    return footerView;
+
 }
 
 - (NSString *)tableView:(UITableView *)tableView titleForFooterInSection:(NSInteger)section
