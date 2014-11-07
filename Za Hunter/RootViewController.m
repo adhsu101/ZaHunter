@@ -14,7 +14,9 @@
 #define kRadiusInKM 10.0
 #define kDegreeToKmConversionDivisor 111.0
 #define kMeterToMileDivisor 1609.34
-#define kNumberOfPlaces 8
+#define kNumberOfPlaces 4
+#define kSecondsToMinutes 60
+#define kEatingTime 30
 
 @interface RootViewController () <CLLocationManagerDelegate, UITableViewDelegate, UITableViewDataSource>
 
@@ -22,7 +24,10 @@
 @property (strong, nonatomic) IBOutlet UITableView *tableView;
 @property NSMutableArray *pizzaPlaces;
 @property NSMutableArray *nearbyPizzaPlaces;
-@property CLLocation *location;
+@property CLLocation *myLocation;
+@property NSString *totalTimeString;
+@property double totalTime;
+@property (strong, nonatomic) IBOutlet UITextView *textView;
 
 @end
 
@@ -56,7 +61,7 @@
         if (location.verticalAccuracy < 500 && location.horizontalAccuracy < 500)
         {
             NSLog(@"Location found.");
-            self.location = location;
+            self.myLocation = location;
             [self findPizzaNear:location];
             [self.manager stopUpdatingLocation];
             NSLog(@"updating stopped");
@@ -74,6 +79,10 @@
     
     MKLocalSearch *search = [[MKLocalSearch alloc] initWithRequest:request];
     [search startWithCompletionHandler:^(MKLocalSearchResponse *response, NSError *error) {
+        //TODO: check for error
+        [self.pizzaPlaces removeAllObjects];
+        [self.nearbyPizzaPlaces removeAllObjects];
+
         NSArray *mapItems = response.mapItems;
         for (MKMapItem *mapItem in mapItems)
         {
@@ -90,29 +99,73 @@
     }];
 }
 
-//- (void)getDirectionsTo:(MKMapItem *)destinationMapItem
+- (void)getTimes
+{
+    MKMapItem *sourceMapItem = [MKMapItem mapItemForCurrentLocation];
+    NSMutableString *timeString = [NSMutableString string];
+    
+//    self.totalTime = 
+    
+    //TODO: print out times in order
+    PizzaPlace *currentLocation = [[PizzaPlace alloc] initWithMapItem:sourceMapItem];
+    [self.nearbyPizzaPlaces addObject:currentLocation];
+    
+    for (PizzaPlace *pizzaPlace in self.nearbyPizzaPlaces)
+    {
+        MKDirectionsRequest *request = [MKDirectionsRequest new];
+        request.source = sourceMapItem;
+        request.destination = [[MKMapItem alloc] initWithPlacemark:pizzaPlace.placemark];
+        
+        MKDirections *directions = [[MKDirections alloc] initWithRequest:request];
+        [directions calculateETAWithCompletionHandler:^(MKETAResponse *response, NSError *error) {
+            NSTimeInterval time = response.expectedTravelTime;
+            self.totalTime = self.totalTime + time;
+            [timeString appendFormat:@"%d min to %@\n", (int)time/kSecondsToMinutes, pizzaPlace.name];
+            self.textView.text = timeString;
+            self.totalTimeString = [NSString stringWithFormat:@"Total crawl time %d min including%d at each place", (int)self.totalTime/kSecondsToMinutes, kEatingTime];
+            [self.tableView reloadData];
+        }];
+        
+        sourceMapItem = request.destination;
+    }
+    
+}
+
+//- (NSMutableArray *)getDirections
 //{
-//    MKDirectionsRequest *request = [MKDirectionsRequest new];
-//    request.source = [MKMapItem mapItemForCurrentLocation];
-//    request.destination = destinationMapItem;
+//    NSMutableArray *directionsStrings = [NSMutableArray array];
+//
+//    MKMapItem *sourceMapItem = [MKMapItem mapItemForCurrentLocation];
 //    
-//    MKDirections *directions = [[MKDirections alloc] initWithRequest:request];
-//    [directions calculateDirectionsWithCompletionHandler:^(MKDirectionsResponse *response, NSError *error) {
-//        NSArray *routes = response.routes;
-//        MKRoute *route = routes.firstObject;
+//    for (PizzaPlace *pizzaPlace in self.pizzaPlaces)
+//    {
+//        MKDirectionsRequest *request = [MKDirectionsRequest new];
+//        request.source = sourceMapItem;
+//        request.destination = [[MKMapItem alloc] initWithPlacemark:pizzaPlace.placemark];
 //        
-//        int x = 1;
-//        NSMutableString *directionsString = [NSMutableString string];
+//        MKDirections *directions = [[MKDirections alloc] initWithRequest:request];
+//        [directions calculateDirectionsWithCompletionHandler:^(MKDirectionsResponse *response, NSError *error) {
+//            NSArray *routes = response.routes;
+//            MKRoute *route = routes.firstObject;
+//            
+//            int x = 1;
+//            NSMutableString *directionsStringSegment = [NSMutableString string];
+//            
+//            for (MKRouteStep *step in route.steps)
+//            {
+//                [directionsStringSegment appendFormat:@"%d: %@\n", x, step.instructions];
+//                x++;
+//            }
+//            
+//            [directionsStrings addObject:directionsStringSegment];
+//            
+//        }];
 //        
-//        for (MKRouteStep *step in route.steps)
-//        {
-//            [directionsString appendFormat:@"%d: %@\n", x, step.instructions];
-//            x++;
-//        }
-//        
-//        self.directions = directionsString;
-//        
-//    }];
+//    }
+//
+//    
+//    return [NSString stringWithString:directionsString];
+//    
 //}
 
 
@@ -132,12 +185,32 @@
     return cell;
 }
 
+- (NSString *)tableView:(UITableView *)tableView titleForFooterInSection:(NSInteger)section
+{
+    return self.totalTimeString;
+}
+
 #pragma mark - IBActions
 
 - (IBAction)onSearchButtonTapped:(UIBarButtonItem *)sender
 {
     [self.pizzaPlaces removeAllObjects];
+    [self.nearbyPizzaPlaces removeAllObjects];
+
     [self.manager startUpdatingLocation];
+}
+
+- (IBAction)onCrawlButtonTapped:(UIButton *)sender
+{
+    // get pizza place 1 and get time to walk from current location
+    
+    [self getTimes];
+    
+//    for (PizzaPlace *pizzaPlace in self.nearbyPizzaPlaces)
+//    {
+//        <#statements#>
+//    }
+    
 }
 
 #pragma mark - helper methods
@@ -166,6 +239,7 @@
         [self.nearbyPizzaPlaces addObject:nearbyPizzaPlace];
         [self.pizzaPlaces removeObject:nearbyPizzaPlace];
     }
+    
 }
 
 @end

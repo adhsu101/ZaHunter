@@ -18,7 +18,7 @@
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                         <subviews>
                             <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="44" sectionHeaderHeight="22" sectionFooterHeight="22" translatesAutoresizingMaskIntoConstraints="NO" id="H4h-vq-wrE">
-                                <rect key="frame" x="0.0" y="0.0" width="320" height="568"/>
+                                <rect key="frame" x="0.0" y="0.0" width="320" height="295"/>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                 <prototypes>
                                     <tableViewCell contentMode="scaleToFill" selectionStyle="default" accessoryType="disclosureIndicator" indentationWidth="10" reuseIdentifier="cell" textLabel="Ozd-bW-frT" detailTextLabel="50q-o7-r1G" style="IBUITableViewCellStyleValue1" id="bJ6-Hd-Xzy">
@@ -48,13 +48,38 @@
                                     <outlet property="delegate" destination="vXZ-lx-hvc" id="7xR-Wo-EPr"/>
                                 </connections>
                             </tableView>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="JIz-zL-Vic">
+                                <rect key="frame" x="16" y="530" width="288" height="30"/>
+                                <state key="normal" title="Pizza Crawl">
+                                    <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
+                                </state>
+                                <connections>
+                                    <action selector="onCrawlButtonTapped:" destination="vXZ-lx-hvc" eventType="touchUpInside" id="rbk-8T-XFQ"/>
+                                </connections>
+                            </button>
+                            <textView clipsSubviews="YES" multipleTouchEnabled="YES" userInteractionEnabled="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="mbp-gt-jhY">
+                                <rect key="frame" x="16" y="303" width="288" height="219"/>
+                                <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                <accessibility key="accessibilityConfiguration">
+                                    <accessibilityTraits key="traits" none="YES" notEnabled="YES"/>
+                                </accessibility>
+                                <fontDescription key="fontDescription" type="system" pointSize="14"/>
+                                <textInputTraits key="textInputTraits" autocapitalizationType="sentences"/>
+                            </textView>
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
                         <constraints>
+                            <constraint firstItem="mbp-gt-jhY" firstAttribute="leading" secondItem="kh9-bI-dsS" secondAttribute="leadingMargin" id="64B-MD-y2U"/>
+                            <constraint firstItem="2fi-mo-0CV" firstAttribute="top" secondItem="JIz-zL-Vic" secondAttribute="bottom" constant="8" symbolic="YES" id="6h3-K2-zvt"/>
+                            <constraint firstItem="JIz-zL-Vic" firstAttribute="trailing" secondItem="mbp-gt-jhY" secondAttribute="trailing" id="73D-4y-30S"/>
                             <constraint firstAttribute="trailingMargin" secondItem="H4h-vq-wrE" secondAttribute="trailing" constant="-16" id="9L8-Kf-BzL"/>
                             <constraint firstItem="H4h-vq-wrE" firstAttribute="top" secondItem="kh9-bI-dsS" secondAttribute="topMargin" id="H2P-xl-1x1"/>
+                            <constraint firstItem="mbp-gt-jhY" firstAttribute="top" secondItem="H4h-vq-wrE" secondAttribute="bottom" constant="8" symbolic="YES" id="MXT-cY-gVg"/>
+                            <constraint firstItem="mbp-gt-jhY" firstAttribute="centerX" secondItem="H4h-vq-wrE" secondAttribute="centerX" id="TF1-YO-kII"/>
                             <constraint firstItem="H4h-vq-wrE" firstAttribute="leading" secondItem="kh9-bI-dsS" secondAttribute="leadingMargin" constant="-16" id="WD6-gM-4mJ"/>
-                            <constraint firstItem="2fi-mo-0CV" firstAttribute="top" secondItem="H4h-vq-wrE" secondAttribute="bottom" id="ajE-qx-43V"/>
+                            <constraint firstItem="2fi-mo-0CV" firstAttribute="top" secondItem="H4h-vq-wrE" secondAttribute="bottom" constant="273" id="ajE-qx-43V"/>
+                            <constraint firstItem="mbp-gt-jhY" firstAttribute="leading" secondItem="JIz-zL-Vic" secondAttribute="leading" id="g3X-Pb-Cl7"/>
+                            <constraint firstItem="JIz-zL-Vic" firstAttribute="top" secondItem="mbp-gt-jhY" secondAttribute="bottom" constant="8" symbolic="YES" id="zuZ-fq-qld"/>
                         </constraints>
                     </view>
                     <navigationItem key="navigationItem" title="Za Hunter" id="2jM-7A-Jq5">
@@ -66,6 +91,7 @@
                     </navigationItem>
                     <connections>
                         <outlet property="tableView" destination="H4h-vq-wrE" id="s16-8u-Vxj"/>
+                        <outlet property="textView" destination="mbp-gt-jhY" id="SIN-Vy-DE3"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="x5A-6p-PRh" sceneMemberID="firstResponder"/>
